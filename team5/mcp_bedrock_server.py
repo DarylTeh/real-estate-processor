@@ -63,20 +63,22 @@ async def call_tool(name: str, arguments: dict):
             return [TextContent(type="text", text="INVALID_DOCUMENT")]
         
         prompt = f"""
-You are a lenient document classifier for real estate documents. Try your best to classify this document into EXACTLY one of these 3 categories:
+You are an EXTREMELY LENIENT document classifier for real estate documents. Your goal is to classify EVERY document into one of these 3 categories, even with minimal evidence:
 
 1. Settlement Documents
 2. Income Verifications  
 3. Purchase Agreements
 
-IMPORTANT RULES:
-- Be flexible in your classification approach - these are real documents that need proper categorization
-- If the document mentions income, salary, employment verification, pay stubs, or tax returns, classify it as "Income Verifications"
-- If the document mentions settlement, closing, HUD-1, escrow, title transfer, or property transaction details, classify it as "Settlement Documents"
-- If the document mentions purchase, sale, offer, buyer, seller, or property acquisition terms, classify it as "Purchase Agreements"
-- Look for the general purpose and content of the document rather than exact phrases
+CRITICAL INSTRUCTIONS:
+- Your PRIMARY goal is to classify EVERY document into one of the three categories above - avoid "INVALID_DOCUMENT" at all costs
+- Use the SLIGHTEST hint or keyword to make a classification decision
+- If you see ANY mention of money, payments, transactions, or financial details, classify as "Settlement Documents"
+- If you see ANY mention of income, salary, employment, job, earnings, or financial status, classify as "Income Verifications"
+- If you see ANY mention of property, real estate, house, agreement, contract, terms, or conditions, classify as "Purchase Agreements"
+- When in doubt between categories, use this priority: 1) Income Verifications, 2) Settlement Documents, 3) Purchase Agreements
+- If truly uncertain, default to "Purchase Agreements" rather than returning "INVALID_DOCUMENT"
+- ONLY use "INVALID_DOCUMENT" if the content is COMPLETELY unrelated to anything that could possibly be a real estate document
 - Respond with ONLY the exact category name from the list above
-- Only use "INVALID_DOCUMENT" if the content is completely unrelated to real estate transactions
 - Do not provide explanations, descriptions, or any other text
 
 Document Content:
