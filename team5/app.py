@@ -15,6 +15,11 @@ aws_region = os.getenv("AWS_DEFAULT_REGION")
 agent_id = os.getenv("BEDROCK_AGENT_ID")
 agent_alias_id = os.getenv("BEDROCK_AGENT_ALIAS_ID")
 bucket_name = os.getenv("S3_BUCKET_NAME")
+print(aws_access_key)
+print(aws_secret_key)
+
+if not all([aws_access_key, aws_secret_key, aws_region, agent_id, agent_alias_id, bucket_name]):
+    raise RuntimeError("❌ Missing required AWS credentials or settings in .env. App cannot continue.")
 
 # Initialize AWS clients
 session = boto3.Session(
@@ -38,6 +43,8 @@ def upload_to_s3(file, classification):
 # Call Bedrock Agent to classify document
 def classify_document(file):
     file_content = file.read()
+    file.seek(0)
+
     prompt = f"""
 You are a document classifier. Classify this document into one of the following categories:
 1. Settlement Documents
@@ -47,17 +54,21 @@ You are a document classifier. Classify this document into one of the following 
 Respond with only the category name.
 
 Document Content:
-{file_content[:3000].decode(errors='ignore')}  # Limit size for context window
+{file_content[:3000].decode(errors='ignore')}  # Limit to first 3000 characters
 """
     try:
         response = bedrock_runtime.invoke_agent(
             agentId=agent_id,
             agentAliasId=agent_alias_id,
             sessionId=str(uuid.uuid4()),
-            input={"inputText": prompt}
+            inputText=prompt
         )
-        output = response["completion"]["content"].strip()
-        return output
+
+        # The output structure depends on your Bedrock agent setup
+        # If it's Claude or Titan model, adjust based on output schema
+        messages = response.get("completion", {}).get("content", "")
+        return messages.strip()
+
     except Exception as e:
         return f"Error: {str(e)}"
 
