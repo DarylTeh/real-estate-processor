@@ -44,7 +44,6 @@ def classify_document(file):
     file_content = file.read()
     file.seek(0)
 
-    # Strict prompt that forces only 3 categories or invalid
     prompt = f"""
 You are a strict document classifier for real estate documents. You MUST classify this document into EXACTLY one of these 3 categories:
 
@@ -61,7 +60,7 @@ IMPORTANT RULES:
 - Do not create new categories
 
 Document Content:
-{file_content[:3000].decode(errors='ignore')}
+{file_content[:3000].decode(errors='ignore')}  # Limit to first 3000 characters
 """
 
     try:
