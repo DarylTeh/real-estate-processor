@@ -1,0 +1,12 @@
+[theme]
+primaryColor = "#FF9900"  # AWS Orange
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+font = "sans serif"
+
+[server]
+maxUploadSize = 200  # Allow uploads up to 200MB
+
+[browser]
+gatherUsageStats = false

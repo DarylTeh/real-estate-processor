@@ -63,22 +63,24 @@ async def call_tool(name: str, arguments: dict):
             return [TextContent(type="text", text="INVALID_DOCUMENT")]
         
         prompt = f"""
-You are a strict document classifier for real estate documents. You MUST classify this document into EXACTLY one of these 3 categories:
+You are a lenient document classifier for real estate documents. Try your best to classify this document into EXACTLY one of these 3 categories:
 
 1. Settlement Documents
 2. Income Verifications  
 3. Purchase Agreements
 
 IMPORTANT RULES:
-- If the document has any of the categories listed inside as text, immediately classify it as one of the 3 categories
+- Be flexible in your classification approach - these are real documents that need proper categorization
+- If the document mentions income, salary, employment verification, pay stubs, or tax returns, classify it as "Income Verifications"
+- If the document mentions settlement, closing, HUD-1, escrow, title transfer, or property transaction details, classify it as "Settlement Documents"
+- If the document mentions purchase, sale, offer, buyer, seller, or property acquisition terms, classify it as "Purchase Agreements"
+- Look for the general purpose and content of the document rather than exact phrases
 - Respond with ONLY the exact category name from the list above
-- If the document does not clearly fit into any of these 3 categories, respond with: "INVALID_DOCUMENT"
-- If the document is corrupted, unreadable, or not a real estate document, respond with: "INVALID_DOCUMENT"
+- Only use "INVALID_DOCUMENT" if the content is completely unrelated to real estate transactions
 - Do not provide explanations, descriptions, or any other text
-- Do not create new categories
 
 Document Content:
-{content[:3000]}
+{file_content[:3000].decode(errors='ignore')}
 """
         
         try:
