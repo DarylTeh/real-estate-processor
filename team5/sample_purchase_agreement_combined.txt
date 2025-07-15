@@ -12,9 +12,9 @@ California Association of REALTORS® Standard Form
 
 2. FINANCE TERMS:
    A. INITIAL DEPOSIT: Buyer has given a deposit in the amount of $55,500.00 to the escrow holder.
-      (1) Buyer shall deliver deposit directly to escrow holder by personal check, wire transfer, or □ Other ______
+      (1) Buyer shall deliver deposit directly to escrow holder by personal check, wire transfer, or [ ] Other ______
           within 3 business days after acceptance.
-      (2) □ This is an all cash offer. NO LOAN is being obtained.
+      (2) [ ] This is an all cash offer. NO LOAN is being obtained.
    B. INCREASED DEPOSIT: Buyer shall deposit with escrow holder an increased deposit in the amount of $0.00
       within ___ days after acceptance.
    C. FIRST LOAN: $1,480,000.00
@@ -22,13 +22,13 @@ California Association of REALTORS® Standard Form
           payable at maximum interest of 5.750% fixed rate, and requiring monthly payments of $8,635.00
       (2) LOAN TERMS: 30-year fixed rate conventional loan
    D. ADDITIONAL FINANCING TERMS:
-      □ Seller financing, □ assumed financing, □ Other: _______________________
+      [ ] Seller financing, [ ] assumed financing, [ ] Other: _______________________
    E. BALANCE OF PURCHASE PRICE (not including costs of obtaining loans and other closing costs) in the amount
       of $314,500.00 to be deposited with escrow holder within sufficient time to close escrow.
    F. PURCHASE PRICE (TOTAL): $1,850,000.00
 
 3. CLOSING AND OCCUPANCY:
-   A. Buyer intends (or □ does not intend) to occupy the Property as Buyer's primary residence.
+   A. Buyer intends (or [ ] does not intend) to occupy the Property as Buyer's primary residence.
    B. Seller-occupied or vacant property: Occupancy shall be delivered to Buyer at 5:00 PM on the date of Close
       of Escrow.
    C. Tenant-occupied property: Property shall be vacant at least 5 days prior to Close of Escrow, unless otherwise
@@ -40,22 +40,22 @@ California Association of REALTORS® Standard Form
 
 4. ALLOCATION OF COSTS:
    A. INSPECTIONS, REPORTS AND CERTIFICATES:
-      (1) □ Buyer □ Seller shall pay for a natural hazard zone disclosure report, including tax information, prepared by
+      (1) [ ] Buyer [ ] Seller shall pay for a natural hazard zone disclosure report, including tax information, prepared by
           HomeGuard Incorporated.
-      (2) □ Buyer □ Seller shall pay for the following inspection or report: _______________________
-      (3) □ Buyer □ Seller shall pay for the following inspection or report: _______________________
+      (2) [ ] Buyer [ ] Seller shall pay for the following inspection or report: _______________________
+      (3) [ ] Buyer [ ] Seller shall pay for the following inspection or report: _______________________
    B. GOVERNMENT REQUIREMENTS AND RETROFIT:
-      (1) □ Buyer □ Seller shall pay for smoke alarm and carbon monoxide device installation and water heater bracing,
+      (1) [ ] Buyer [ ] Seller shall pay for smoke alarm and carbon monoxide device installation and water heater bracing,
           if required by Law. Prior to Close of Escrow, Seller shall provide Buyer written statement of compliance.
-      (2) □ Buyer □ Seller shall pay the cost of compliance with any other minimum mandatory government
+      (2) [ ] Buyer [ ] Seller shall pay the cost of compliance with any other minimum mandatory government
           inspections and reports if required as a condition of closing escrow under any Law.
-      (3) □ Buyer □ Seller shall pay the cost of compliance with any other minimum mandatory government retrofit
+      (3) [ ] Buyer [ ] Seller shall pay the cost of compliance with any other minimum mandatory government retrofit
           standards required as a condition of closing escrow under any Law.
    C. ESCROW AND TITLE:
-      (1) □ Buyer □ Seller shall pay escrow fee to be split equally between Buyer and Seller.
+      (1) [ ] Buyer [ ] Seller shall pay escrow fee to be split equally between Buyer and Seller.
       (2) Escrow Holder shall be First American Title Company.
       (3) The Parties shall, within 5 days after receipt, sign and return Escrow Holder's general provisions.
-      (4) □ Buyer □ Seller shall pay for owner's title insurance policy specified in paragraph 12E to be split equally
+      (4) [ ] Buyer [ ] Seller shall pay for owner's title insurance policy specified in paragraph 12E to be split equally
           between Buyer and Seller.
       (5) Owner's title policy to be issued by First American Title Company.
 
