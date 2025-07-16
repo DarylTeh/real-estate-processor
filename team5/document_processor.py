@@ -357,8 +357,8 @@ Document Content:
             print(f"Error storing data in DynamoDB: {str(e)}")
             return ""
     
-    def query_agent(self, query: str) -> str:
-        """Query the Bedrock agent with a user question"""
+    def query_agent(self, query: str) -> tuple:
+        """Query the Bedrock agent with a user question and return response with citations"""
         try:
             response = self.bedrock_runtime.invoke_agent(
                 agentId=self.agent_id,
@@ -367,18 +367,36 @@ Document Content:
                 inputText=query
             )
             
+            output = ""
+            citations = []
+            
             if 'completion' in response:
                 completion = response['completion']
-                output = ""
                 for event in completion:
                     if 'chunk' in event and 'bytes' in event['chunk']:
                         output += event['chunk']['bytes'].decode('utf-8')
-                return output.strip()
+                    elif 'trace' in event:
+                        # Extract citations from trace
+                        trace = event['trace']
+                        if 'orchestrationTrace' in trace:
+                            orch_trace = trace['orchestrationTrace']
+                            if 'observation' in orch_trace:
+                                obs = orch_trace['observation']
+                                if 'knowledgeBaseLookupOutput' in obs:
+                                    kb_output = obs['knowledgeBaseLookupOutput']
+                                    if 'retrievedReferences' in kb_output:
+                                        for ref in kb_output['retrievedReferences']:
+                                            citation = {
+                                                'content': ref.get('content', {}).get('text', ''),
+                                                'location': ref.get('location', {}).get('s3Location', {}).get('uri', ''),
+                                                'score': ref.get('score', 0)
+                                            }
+                                            citations.append(citation)
             
-            return "No response received from agent"
+            return output.strip() if output else "No response received from agent", citations
             
         except Exception as e:
-            return f"Error querying agent: {str(e)}"
+            return f"Error querying agent: {str(e)}", []
     
     def get_dynamodb_status(self) -> Dict[str, Any]:
         """Get status of all DynamoDB tables"""

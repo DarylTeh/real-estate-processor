@@ -45,6 +45,8 @@ session = boto3.Session(region_name=aws_region)
 
 # AWS clients
 s3 = session.client("s3")
+sfn_client = session.client("stepfunctions")
+step_function_arn = os.getenv("STEP_FUNCTION_ARN", "").strip()
 
 # Initialize document processor
 doc_processor = DocumentProcessor(aws_region, agent_id, agent_alias_id)
@@ -158,6 +160,18 @@ def process_document_enhanced(file_content, filename):
             s3_path = upload_to_s3(file_content, filename, classification)
             if not s3_path:
                 return None, None, None, None, 0
+        
+        # Trigger Knowledge Base sync after successful upload
+        if step_function_arn:
+            try:
+                sfn_client.start_execution(
+                    stateMachineArn=step_function_arn,
+                    name=f"auto-sync-{int(time.time())}-{uuid.uuid4().hex[:8]}",
+                    input=json.dumps({})
+                )
+                st.info("🔄 Knowledge Base sync started automatically")
+            except Exception as e:
+                st.warning(f"⚠️ Could not auto-sync Knowledge Base: {str(e)}")
         
         # Update extracted data with S3 path
         extracted_data['document_s3_path'] = f"s3://{bucket_name}/{s3_path}"
@@ -376,8 +390,8 @@ with st.container():
     st.subheader("🔍 Next Steps")
     st.write("After processing documents, use the **QueryAgent** page (in sidebar) to:")
     st.write("• Query your uploaded documents")
-    st.write("• Sync the Knowledge Base")
     st.write("• Ask questions about your real estate data")
+    st.write("• Knowledge Base syncs automatically after uploads")
     
     # Clear button to reset session
     if st.button("🔄 Clear Session Data"):
