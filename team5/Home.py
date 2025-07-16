@@ -83,7 +83,7 @@ def calculate_cost(start_time, end_time):
 
 # Update analytics sidebar
 def update_analytics_sidebar():
-    with st.sidebar:
+    with st.session_state.sidebar_container.container():
         st.header("📊 Real-Time Analytics")
         
         # Document processing metrics
@@ -193,6 +193,10 @@ def process_document_enhanced(file_content, filename):
             st.session_state.dynamodb_records += 1
         st.session_state.category_counts[classification] += 1
         
+        # Update sidebar analytics after each document
+        st.session_state.sidebar_container.empty()
+        update_analytics_sidebar()
+        
         return classification, extracted_data, s3_path, record_id, process_duration
         
     except Exception as e:
@@ -206,6 +210,10 @@ st.subheader("AWS Bedrock + S3 + DynamoDB Integration with PDF Support")
 
 # Navigation info
 st.info("💡 After uploading documents, go to **QueryAgent** in the sidebar to query your knowledge base!")
+
+# Initialize sidebar container
+if 'sidebar_container' not in st.session_state:
+    st.session_state.sidebar_container = st.sidebar.empty()
 
 # Initialize the sidebar
 update_analytics_sidebar()
