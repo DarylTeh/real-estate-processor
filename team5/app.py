@@ -318,7 +318,7 @@ with main_content:
         st.session_state.processing_complete = True
         
         # Update the sidebar once after all processing is complete
-        duration_placeholder = update_analytics_sidebar()
+        # duration_placeholder = update_analytics_sidebar()
     
     # Display previous results if processing is complete
     elif 'processing_complete' in st.session_state and st.session_state.processing_complete:
@@ -351,7 +351,7 @@ with main_content:
     
     # Only update the full sidebar once per second
     if current_time - st.session_state.last_sidebar_update >= 1.0:
-        duration_placeholder = update_analytics_sidebar()
+        # duration_placeholder = update_analytics_sidebar()
         st.session_state.last_sidebar_update = current_time
     
     # Auto-rerun the app every second to update the timer
