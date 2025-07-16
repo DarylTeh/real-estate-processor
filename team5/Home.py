@@ -108,10 +108,56 @@ def calculate_cost(start_time, end_time):
     time_cost = 0.00012 * duration  # Cost per second of processing
     return base_cost + time_cost
 
+# Get S3 file counts
+def get_s3_file_counts():
+    """Get count of files in S3 bucket by folder"""
+    try:
+        response = s3.list_objects_v2(Bucket=bucket_name)
+        if 'Contents' not in response:
+            return {'total': 0, 'by_folder': {}}
+        
+        total_files = len(response['Contents'])
+        folder_counts = {}
+        
+        for obj in response['Contents']:
+            key = obj['Key']
+            if '/' in key:
+                folder = key.split('/')[0]
+                folder_counts[folder] = folder_counts.get(folder, 0) + 1
+            else:
+                folder_counts['root'] = folder_counts.get('root', 0) + 1
+        
+        return {'total': total_files, 'by_folder': folder_counts}
+    except Exception as e:
+        return {'total': 0, 'by_folder': {}, 'error': str(e)}
+
 # Update analytics sidebar
 def update_analytics_sidebar():
     with st.session_state.sidebar_container.container():
         st.header("📊 Real-Time Analytics")
+        
+        # S3 Storage Statistics (Top Section)
+        st.subheader("☁️ S3 Storage")
+        s3_stats = get_s3_file_counts()
+        
+        if 'error' in s3_stats:
+            st.error(f"S3 Error: {s3_stats['error']}")
+        else:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Total Files in S3", s3_stats['total'])
+            with col2:
+                if s3_stats['by_folder']:
+                    most_files_folder = max(s3_stats['by_folder'], key=s3_stats['by_folder'].get)
+                    st.metric(f"Largest Folder", f"{most_files_folder} ({s3_stats['by_folder'][most_files_folder]})")
+            
+            # Show folder breakdown
+            if s3_stats['by_folder']:
+                st.write("**Files by Folder:**")
+                for folder, count in s3_stats['by_folder'].items():
+                    st.write(f"• {folder}: {count} files")
+        
+        st.markdown("---")
         
         # Document processing metrics
         st.subheader("📄 Document Processing")
@@ -188,10 +234,22 @@ def process_document_enhanced(file_content, filename):
         if confidence_score < 0.6 or missing_fields:
             st.error(f"⚠️ Low confidence extraction for {filename}")
             st.error(f"Missing fields: {', '.join(missing_fields)}")
-            if st.button(f"Manual Extraction Required for {filename}", key=f"manual_{filename}"):
-                st.warning("📝 Please perform manual data extraction for this document")
-                st.info("Document has been uploaded to S3 for manual review")
+            st.warning("📝 Manual extraction required - Document NOT uploaded to S3 or stored in DynamoDB")
+            st.info("Please review and manually process this document")
+            
+            # Return early without uploading or storing
+            process_end_time = time.time()
+            process_duration = process_end_time - process_start_time
+            
+            # Update analytics for failed processing
+            st.session_state.processing_times.append(process_duration)
+            st.session_state.total_cost += calculate_cost(process_start_time, process_end_time)
+            st.session_state.documents_processed += 1
+            # Don't increment successful_uploads or dynamodb_records
+            
+            return classification, extracted_data, None, None, process_duration
         
+        # Only proceed with upload and storage if confidence is high
         # Upload to S3 asynchronously (immediate)
         upload_future = upload_to_s3_async(file_content, filename, classification)
         s3_path = upload_future.result()  # Wait for upload completion
@@ -225,7 +283,7 @@ def process_document_enhanced(file_content, filename):
         process_end_time = time.time()
         process_duration = process_end_time - process_start_time
         
-        # Update analytics
+        # Update analytics (only for successful processing)
         st.session_state.processing_times.append(process_duration)
         st.session_state.total_cost += calculate_cost(process_start_time, process_end_time)
         st.session_state.documents_processed += 1
@@ -312,9 +370,13 @@ with st.container():
                     })
                     
                     st.success(f"✅ Classified as: `{classification}`")
-                    st.write(f"☁️ Uploaded to S3: `s3://{bucket_name}/{s3_path}`")
+                    
+                    # Only show S3 and DynamoDB messages if actually uploaded/stored
+                    if s3_path:
+                        st.write(f"☁️ Uploaded to S3: `s3://{bucket_name}/{s3_path}`")
                     if record_id:
-                        st.write(f"🗄️ Stored in DynamoDB with ID: `{record_id}`")
+                        st.write(f"🗼️ Stored in DynamoDB with ID: `{record_id}`")
+                    
                     st.write(f"⏱️ Processing time: {duration:.2f} seconds")
                     
                     # Show extracted data preview

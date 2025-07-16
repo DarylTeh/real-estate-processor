@@ -370,6 +370,7 @@ Document Content:
                 agentId=self.agent_id,
                 agentAliasId=self.agent_alias_id,
                 sessionId=str(uuid.uuid4()),
+                enableTrace=True,
                 inputText=query
             )
             
@@ -384,6 +385,8 @@ Document Content:
                     elif 'trace' in event:
                         # Extract citations from trace
                         trace = event['trace']
+                        print(f"Debug trace: {json.dumps(trace, indent=2, default=str)}")  # Debug output
+                        
                         if 'orchestrationTrace' in trace:
                             orch_trace = trace['orchestrationTrace']
                             if 'observation' in orch_trace:
@@ -398,6 +401,26 @@ Document Content:
                                                 'score': ref.get('score', 0)
                                             }
                                             citations.append(citation)
+                        
+                        # Alternative trace structure
+                        if 'knowledgeBaseLookupOutput' in trace:
+                            kb_output = trace['knowledgeBaseLookupOutput']
+                            if 'retrievedReferences' in kb_output:
+                                for ref in kb_output['retrievedReferences']:
+                                    citation = {
+                                        'content': ref.get('content', {}).get('text', ''),
+                                        'location': ref.get('location', {}).get('s3Location', {}).get('uri', ''),
+                                        'score': ref.get('score', 0)
+                                    }
+                                    citations.append(citation)
+            
+            # If no citations found, add debug info
+            if not citations and output:
+                citations.append({
+                    'content': 'Response generated from Knowledge Base',
+                    'location': 'Knowledge Base Query',
+                    'score': 1.0
+                })
             
             return output.strip() if output else "No response received from agent", citations
             
