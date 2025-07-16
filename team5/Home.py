@@ -10,6 +10,9 @@ from pathlib import Path
 import uuid
 from document_processor import DocumentProcessor
 import io
+import asyncio
+import concurrent.futures
+from threading import Thread
 
 # Load environment variables from .env if present
 load_dotenv()
@@ -59,20 +62,44 @@ def test_aws_connection():
     except Exception as e:
         return False, f"AWS credentials error: {str(e)}"
 
-# Upload file to S3
-def upload_to_s3(file_content, filename, classification):
-    """Upload file content to S3 with proper error handling"""
-    try:
-        folder = classification.replace(" ", "_").lower()
-        s3_key = f"{folder}/{filename}"
+# Upload file to S3 asynchronously
+def upload_to_s3_async(file_content, filename, classification):
+    """Upload file content to S3 asynchronously"""
+    def upload_task():
+        try:
+            folder = classification.replace(" ", "_").lower()
+            s3_key = f"{folder}/{filename}"
+            file_obj = io.BytesIO(file_content)
+            s3.upload_fileobj(file_obj, bucket_name, s3_key)
+            return s3_key
+        except Exception as e:
+            return None
+    
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(upload_task)
+        return future
+
+# Check data quality and confidence
+def check_data_confidence(extracted_data, classification):
+    """Check confidence of extracted data"""
+    confidence_score = 1.0
+    required_fields = {
+        "Income Verifications": ["employee_name", "employer_name", "annual_income"],
+        "Settlement Documents": ["buyer_name", "seller_name", "property_address", "sale_price"],
+        "Purchase Agreements": ["buyer_name", "seller_name", "property_address", "purchase_price"]
+    }
+    
+    if classification in required_fields:
+        missing_fields = []
+        for field in required_fields[classification]:
+            if not extracted_data.get(field) or str(extracted_data.get(field)).strip() == "":
+                missing_fields.append(field)
+                confidence_score -= 0.2
         
-        # Create a BytesIO object from the file content
-        file_obj = io.BytesIO(file_content)
-        s3.upload_fileobj(file_obj, bucket_name, s3_key)
-        return s3_key
-    except Exception as e:
-        st.error(f"Error uploading to S3: {str(e)}")
-        return None
+        if missing_fields:
+            return confidence_score, missing_fields
+    
+    return confidence_score, []
 
 # Calculate approximate cost
 def calculate_cost(start_time, end_time):
@@ -155,11 +182,23 @@ def process_document_enhanced(file_content, filename):
         if 'error' in extracted_data:
             st.warning(f"⚠️ Processing warning for {filename}: {extracted_data['error']}")
         
-        # Upload to correct S3 folder based on classification
-        with st.spinner(f'☁️ Uploading {filename} to S3...'):
-            s3_path = upload_to_s3(file_content, filename, classification)
-            if not s3_path:
-                return None, None, None, None, 0
+        # Check data confidence
+        confidence_score, missing_fields = check_data_confidence(extracted_data, classification)
+        
+        if confidence_score < 0.6 or missing_fields:
+            st.error(f"⚠️ Low confidence extraction for {filename}")
+            st.error(f"Missing fields: {', '.join(missing_fields)}")
+            if st.button(f"Manual Extraction Required for {filename}", key=f"manual_{filename}"):
+                st.warning("📝 Please perform manual data extraction for this document")
+                st.info("Document has been uploaded to S3 for manual review")
+        
+        # Upload to S3 asynchronously (immediate)
+        upload_future = upload_to_s3_async(file_content, filename, classification)
+        s3_path = upload_future.result()  # Wait for upload completion
+        
+        if not s3_path:
+            st.error(f"Failed to upload {filename} to S3")
+            return None, None, None, None, 0
         
         # Trigger Knowledge Base sync after successful upload
         if step_function_arn:
@@ -173,8 +212,10 @@ def process_document_enhanced(file_content, filename):
             except Exception as e:
                 st.warning(f"⚠️ Could not auto-sync Knowledge Base: {str(e)}")
         
-        # Update extracted data with S3 path
+        # Update extracted data with S3 path and confidence
         extracted_data['document_s3_path'] = f"s3://{bucket_name}/{s3_path}"
+        extracted_data['confidence_score'] = confidence_score
+        extracted_data['missing_fields'] = missing_fields
         
         # Store extracted data in DynamoDB
         with st.spinner('💾 Storing structured data in DynamoDB...'):
@@ -305,16 +346,24 @@ with st.container():
                         with col2:
                             annual_income = data.get('annual_income', 0)
                             monthly_income = data.get('monthly_income', 0)
-                            if isinstance(annual_income, str):
+                            
+                            # Handle None values and convert to float
+                            if annual_income is None:
+                                annual_income = 0
+                            elif isinstance(annual_income, str):
                                 try:
                                     annual_income = float(annual_income)
                                 except:
                                     annual_income = 0
-                            if isinstance(monthly_income, str):
+                            
+                            if monthly_income is None:
+                                monthly_income = 0
+                            elif isinstance(monthly_income, str):
                                 try:
                                     monthly_income = float(monthly_income)
                                 except:
                                     monthly_income = 0
+                            
                             st.write(f"**Annual Income:** ${annual_income:,.0f}")
                             st.write(f"**Monthly Income:** ${monthly_income:,.0f}")
                             st.write(f"**Employment Status:** {data.get('employment_status', 'N/A')}")
@@ -328,16 +377,24 @@ with st.container():
                         with col2:
                             sale_price = data.get('sale_price', 0)
                             loan_amount = data.get('loan_amount', 0)
-                            if isinstance(sale_price, str):
+                            
+                            # Handle None values and convert to float
+                            if sale_price is None:
+                                sale_price = 0
+                            elif isinstance(sale_price, str):
                                 try:
                                     sale_price = float(sale_price)
                                 except:
                                     sale_price = 0
-                            if isinstance(loan_amount, str):
+                            
+                            if loan_amount is None:
+                                loan_amount = 0
+                            elif isinstance(loan_amount, str):
                                 try:
                                     loan_amount = float(loan_amount)
                                 except:
                                     loan_amount = 0
+                            
                             st.write(f"**Sale Price:** ${sale_price:,.0f}")
                             st.write(f"**Loan Amount:** ${loan_amount:,.0f}")
                             st.write(f"**Settlement Date:** {data.get('settlement_date', 'N/A')}")
@@ -351,16 +408,24 @@ with st.container():
                         with col2:
                             purchase_price = data.get('purchase_price', 0)
                             down_payment = data.get('down_payment', 0)
-                            if isinstance(purchase_price, str):
+                            
+                            # Handle None values and convert to float
+                            if purchase_price is None:
+                                purchase_price = 0
+                            elif isinstance(purchase_price, str):
                                 try:
                                     purchase_price = float(purchase_price)
                                 except:
                                     purchase_price = 0
-                            if isinstance(down_payment, str):
+                            
+                            if down_payment is None:
+                                down_payment = 0
+                            elif isinstance(down_payment, str):
                                 try:
                                     down_payment = float(down_payment)
                                 except:
                                     down_payment = 0
+                            
                             st.write(f"**Purchase Price:** ${purchase_price:,.0f}")
                             st.write(f"**Down Payment:** ${down_payment:,.0f}")
                             st.write(f"**Closing Date:** {data.get('closing_date', 'N/A')}")

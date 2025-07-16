@@ -186,20 +186,22 @@ Document Content:
         
         if "Income Verification" in classification:
             return f"""
-Extract the following information from this income verification document and return as valid JSON:
+Extract the following REQUIRED information from this income verification document and return as valid JSON.
+These fields are MANDATORY for DynamoDB storage:
 
 {{
-    "employee_name": "Full name of employee",
-    "employer_name": "Name of employer/company",
-    "annual_income": 0,
-    "monthly_income": 0,
+    "employee_name": "REQUIRED: Full name of employee (cannot be empty)",
+    "employer_name": "REQUIRED: Name of employer/company (cannot be empty)",
+    "annual_income": "REQUIRED: Annual income as number (cannot be 0)",
+    "monthly_income": "Monthly income as number",
     "employment_start_date": "Start date of employment",
     "employment_status": "Employment status (full-time, part-time, etc.)",
     "job_title": "Job title/position",
     "verification_date": "Date of verification"
 }}
 
-Important: Return ONLY valid JSON. If any field is not found, use empty string for text fields or 0 for numeric fields.
+CRITICAL: employee_name, employer_name, and annual_income are REQUIRED and cannot be empty or zero.
+Return ONLY valid JSON. Extract actual values from the document.
 
 Document Content:
 {text_content}
@@ -207,26 +209,28 @@ Document Content:
         
         elif "Settlement" in classification:
             return f"""
-Extract the following information from this settlement document and return as valid JSON:
+Extract the following REQUIRED information from this settlement document and return as valid JSON.
+These fields are MANDATORY for DynamoDB storage:
 
 {{
-    "buyer_name": "Name of buyer",
-    "seller_name": "Name of seller", 
-    "property_address": "Full property address",
+    "buyer_name": "REQUIRED: Name of buyer (cannot be empty)",
+    "seller_name": "REQUIRED: Name of seller (cannot be empty)", 
+    "property_address": "REQUIRED: Full property address (cannot be empty)",
     "settlement_date": "Date of settlement/closing",
-    "sale_price": 0,
-    "loan_amount": 0,
-    "cash_to_close": 0,
+    "sale_price": "REQUIRED: Sale price as number (cannot be 0)",
+    "loan_amount": "Loan amount as number",
+    "cash_to_close": "Cash to close amount",
     "title_company": "Title company name",
     "lender_name": "Lender/bank name",
-    "real_estate_taxes": 0,
-    "homeowners_insurance": 0,
-    "title_insurance": 0,
-    "recording_fees": 0,
-    "transfer_taxes": 0
+    "real_estate_taxes": "Real estate taxes amount",
+    "homeowners_insurance": "Homeowners insurance amount",
+    "title_insurance": "Title insurance amount",
+    "recording_fees": "Recording fees amount",
+    "transfer_taxes": "Transfer taxes amount"
 }}
 
-Important: Return ONLY valid JSON. If any field is not found, use empty string for text fields or 0 for numeric fields.
+CRITICAL: buyer_name, seller_name, property_address, and sale_price are REQUIRED and cannot be empty or zero.
+Return ONLY valid JSON. Extract actual values from the document.
 
 Document Content:
 {text_content}
@@ -234,30 +238,32 @@ Document Content:
         
         elif "Purchase Agreement" in classification:
             return f"""
-Extract the following information from this purchase agreement and return as valid JSON:
+Extract the following REQUIRED information from this purchase agreement and return as valid JSON.
+These fields are MANDATORY for DynamoDB storage:
 
 {{
-    "buyer_name": "Name of buyer",
-    "seller_name": "Name of seller",
-    "property_address": "Full property address",
-    "purchase_price": 0,
-    "earnest_money": 0,
+    "buyer_name": "REQUIRED: Name of buyer (cannot be empty)",
+    "seller_name": "REQUIRED: Name of seller (cannot be empty)",
+    "property_address": "REQUIRED: Full property address (cannot be empty)",
+    "purchase_price": "REQUIRED: Purchase price as number (cannot be 0)",
+    "earnest_money": "Earnest money amount",
     "closing_date": "Scheduled closing date",
     "contract_date": "Contract/agreement date",
     "financing_type": "Type of financing (conventional, FHA, cash, etc.)",
-    "loan_amount": 0,
-    "down_payment": 0,
+    "loan_amount": "Loan amount as number",
+    "down_payment": "Down payment amount",
     "contingencies": "List of contingencies",
     "inspection_period": "Inspection period duration",
     "property_type": "Type of property (single family, condo, etc.)",
-    "square_footage": 0,
-    "bedrooms": 0,
-    "bathrooms": 0,
+    "square_footage": "Square footage as number",
+    "bedrooms": "Number of bedrooms",
+    "bathrooms": "Number of bathrooms",
     "lot_size": "Lot size",
-    "year_built": 0
+    "year_built": "Year built"
 }}
 
-Important: Return ONLY valid JSON. If any field is not found, use empty string for text fields or 0 for numeric fields.
+CRITICAL: buyer_name, seller_name, property_address, and purchase_price are REQUIRED and cannot be empty or zero.
+Return ONLY valid JSON. Extract actual values from the document.
 
 Document Content:
 {text_content}
