@@ -27,6 +27,8 @@ class DynamoDBHandler:
         """
         buyer_id = str(uuid.uuid4())
         name = data.get('employee_name', 'Unknown Employee')
+        if not name or name.strip() == '':
+            name = 'Unknown Employee'
         
         item = {
             'BUYER_ID': buyer_id,  # Primary key (Hash)
@@ -53,6 +55,8 @@ class DynamoDBHandler:
         """
         owner_id = str(uuid.uuid4())
         owner_name = data.get('full_name', data.get('buyer_name', 'Unknown Owner'))
+        if not owner_name or owner_name.strip() == '':
+            owner_name = 'Unknown Owner'
         
         item = {
             'OWNER_ID': owner_id,     # Primary key (Hash)
@@ -83,6 +87,8 @@ class DynamoDBHandler:
         property_id = str(uuid.uuid4())
         # Use property address or a default value for SINGPOST
         singpost = data.get('property_address', 'Unknown Address')[:50]  # Truncate if too long
+        if not singpost or singpost.strip() == '':
+            singpost = 'Unknown Address'
         
         item = {
             'PROPERTY_ID': property_id,  # Primary key (Hash)
